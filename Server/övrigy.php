@@ -2,11 +2,13 @@
 
 
 require_once dirname(__FILE__) . '/../Phpmodbus/ModbusMaster.php';
+// create a connection to a database
 $servername = "localhost";
 $username = "root";
 $pasword = "elcykel";
 $wordpress = "wordpress";
 $conn = new mysqli($servername,$username,$pasword,$wordpress);
+// check if connection was established
 if($conn->connect_error){
     die("Connection failed: " . $conn->connect_error);
 }
