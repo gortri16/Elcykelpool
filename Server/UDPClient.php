@@ -2,11 +2,13 @@
 
 // php /home/pi/PhpModbus/phpmodbus-master/UDPClient.php
 //require_once dirname(__FILE__) . '/../Phpmodbus/ModbusMaster.php';
+// establish a connection to a database
 $servername = "localhost";
 $username = "root";
 $pasword = "elcykel";
 $wordpress = "wordpress";
 $conn = new mysqli($servername,$username,$pasword,$wordpress);
+//check if the connection was established
 if($conn->connect_error){
     die("Connection failed: " . $conn->connect_error);
 }
@@ -229,9 +231,11 @@ while (1) {
     
 
 function returnBike() {
+    // global variables that we need in the function
     global $recData1, $servername, $username, $pasword, $wordpress, $conn, $beat_period, $slaveID, $address3E, $coilValue;
     
         echo " bike is returned \n";
+    //select the user and status from an order that is linked to the specific bike with the current status set as active
         $checkorder = "SELECT userID, active FROM Orders WHERE cykelID = 2 AND active = TRUE";
         $result = $conn->query($checkorder);
         if($result->num_rows>0){
@@ -246,19 +250,23 @@ function returnBike() {
         }else{
           echo "inga bokningar finns \n";
         } 
+    //if the status of the order was active and the flag is set to true we enter the if statment
         if($active == TRUE && $flag == TRUE){
+            //Uppdates the returned bike to available
           $updaterafack = "UPDATE Cykel_Fack SET avaliable = TRUE WHERE cykelID = 2";
           if($conn->query($updaterafack)){
               echo"fack uppdaterad\n";
           }else{
               echo"kunde inte uppdatera fack\n";
           }
+            //Locks the door were the bike was returned
           $updaterafack = "UPDATE Cykel_Fack SET doorlocked = FALSE WHERE fackID = 2";
           if($conn->query($updaterafack)){
               echo"fack uppdaterad\n";
           }else{
               echo"kunde inte uppdatera fack\n";
           }
+           //Set the order as finished were the order information matches the returned bike and userid
           $uppdateraorder = "UPDATE Orders SET active = FALSE WHERE cykelID = 2 AND userID = $userid";
           if($conn->query($uppdateraorder)){
               echo"order är nu arkiverad\n";
@@ -273,7 +281,9 @@ function returnBike() {
     $conn->close();
 }
 function opendoor(){
+    //global variables that we need for the function
     global $recData1, $servername, $username, $pasword, $wordpress, $conn, $beat_period, $slaveID, $address3E, $coilValue;
+    //get information if the door was opened from the webbsite for a specific bike
     $isdoorOpened = "SELECT doorlocked FROM Cykel_Fack WHERE fackID = 2 ";
     $res = $conn->query($isdoorOpened);
     if($res->num_rows>0){
@@ -281,6 +291,7 @@ function opendoor(){
         $opendoor = $rows["doorlocked"];
         }
     }
+    // if the door was registerd as open in the database write to the arduino on the com-modules to open the lock
     if($opendoor == TRUE){
         echo "------------------------ \n";
         echo " open door \n";
@@ -295,10 +306,11 @@ function opendoor(){
             }
             sleep($beat_period);
         }
+        // when the door was opened reset the doorlocked to the deafult value which is closed
         $closedoor = "UPDATE Cykel_Fack SET doorlocked = 0 WHERE fackID = 2";
-        //if($closeres = $conn->query($closedoor)){
+        if($closeres = $conn->query($closedoor)){
         //    echo "door closed";
-        //}
+        }
         return true;
     }else{ 
         //echo "door is not open\n";
